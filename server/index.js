@@ -67,10 +67,12 @@ io.on("connection", (socket) => {
     // ]);
     console.log("data.room", data.room);
     socket.join(data.room);
+
     io.to(data.room).emit("msg-recieve", {
       msg: `${data.username} has joined the chat`,
       type: "general",
       room: data.room,
+      userId: data.user,
     });
   });
 
@@ -79,14 +81,18 @@ io.on("connection", (socket) => {
       socket.broadcast.to(data.group).emit("msg-recieve", {
         msg: data.msg,
         sender: { username: data.username || "unknown" },
+        room: data.group,
+        userId: data.user,
       });
       return;
     } else {
       const sendUserSocket = onlineUsers.get(data.to);
       if (sendUserSocket) {
-        socket
-          .to(sendUserSocket)
-          .emit("msg-recieve", { msg: data.msg, sender: "anoynoums" });
+        socket.to(sendUserSocket).emit("msg-recieve", {
+          msg: data.msg,
+          sender: "anoynoums",
+          user: data.from,
+        });
       }
     }
   });

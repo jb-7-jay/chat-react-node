@@ -98,8 +98,6 @@ export default function ChatContainer({ currentChat, socket }) {
 
   useEffect(() => {
     socket.current?.on("msg-recieve", (data) => {
-      console.log("message arived", data.room, currentChat);
-
       if (data.room) {
         // if msg recieved in room and same id only then add to current chat, will handle it later
         if (data.room === currentChat._id) {
@@ -110,14 +108,16 @@ export default function ChatContainer({ currentChat, socket }) {
           });
         }
       } else {
-        setArrivalMessage({
-          fromSelf: false,
-          message: data.msg,
-          sender: data.sender,
-        });
+        if (data.user === currentChat._id) {
+          setArrivalMessage({
+            fromSelf: false,
+            message: data.msg,
+            sender: data.sender,
+          });
+        }
       }
     });
-  }, []);
+  }, [currentChat]);
 
   useEffect(() => {
     arrivalMessage && setMessages((prev) => [...prev, arrivalMessage]);
