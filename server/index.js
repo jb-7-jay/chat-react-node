@@ -84,7 +84,6 @@ io.on("connection", (socket) => {
         room: data.group,
         userId: data.user,
       });
-      return;
     } else {
       const sendUserSocket = onlineUsers.get(data.to);
       if (sendUserSocket) {

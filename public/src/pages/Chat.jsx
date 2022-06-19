@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
@@ -65,6 +65,38 @@ export default function Chat() {
     setCurrentChat(chat);
   };
 
+  // const callBack = useCallback(
+  //   (data) => {
+  //     console.log("101", data, currentChat);
+  //     if (data.room) {
+  //       // console.log("from room");
+
+  //       // if msg recieved in room and same id only then add to current chat, will handle it later
+  //       if (data.room === currentChat._id) {
+  //         // console.log("room id match");
+
+  //         setArrivalMessage({
+  //           fromSelf: false,
+  //           message: data.msg,
+  //           sender: data.sender,
+  //         });
+  //       }
+  //     } else {
+  //       // console.log("from normal user");
+
+  //       if (data.user === currentChat._id) {
+  //         console.log("normal user match");
+  //         setArrivalMessage({
+  //           fromSelf: false,
+  //           message: data.msg,
+  //           sender: data.sender,
+  //         });
+  //       }
+  //     }
+  //   },
+  //   [currentChat]
+  // );
+
   return (
     <>
       <Container>
@@ -77,7 +109,12 @@ export default function Chat() {
           {currentChat === undefined ? (
             <Welcome />
           ) : (
-            <ChatContainer currentChat={currentChat} socket={socket} />
+            <ChatContainer
+              currentChat={currentChat}
+              socket={socket}
+              // arrivalMessage={arrivalMessage}
+              // setArrivalMessage={setArrivalMessage}
+            />
           )}
         </div>
       </Container>

@@ -11,12 +11,19 @@ import {
   sendGroupMessage,
 } from "../utils/APIRoutes";
 
-export default function ChatContainer({ currentChat, socket }) {
+export default function ChatContainer({
+  currentChat,
+  socket,
+  // setArrivalMessage,
+  // arrivalMessage,
+}) {
   const [messages, setMessages] = useState([]);
   const scrollRef = useRef();
   const [arrivalMessage, setArrivalMessage] = useState(null);
 
   useEffect(async () => {
+    console.log("currentChat", currentChat);
+
     const data = await JSON.parse(
       localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
     );
@@ -32,24 +39,24 @@ export default function ChatContainer({ currentChat, socket }) {
         fromSelf: item.sender._id === data._id,
       }));
       setMessages(response);
-      return;
+    } else {
+      const response = await axios.post(recieveMessageRoute, {
+        from: data._id,
+        to: currentChat._id,
+      });
+      setMessages(response.data);
     }
-    const response = await axios.post(recieveMessageRoute, {
-      from: data._id,
-      to: currentChat._id,
-    });
-    setMessages(response.data);
   }, [currentChat]);
 
   useEffect(() => {
-    const getCurrentChat = async () => {
-      if (currentChat) {
-        await JSON.parse(
-          localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
-        )._id;
-      }
-    };
-    getCurrentChat();
+    // const getCurrentChat = async () => {
+    //   if (currentChat) {
+    //     await JSON.parse(
+    //       localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
+    //     )._id;
+    //   }
+    // };
+    // getCurrentChat();
   }, [currentChat]);
 
   const handleSendMsg = async (msg) => {
@@ -96,32 +103,95 @@ export default function ChatContainer({ currentChat, socket }) {
     setMessages(msgs);
   };
 
-  useEffect(() => {
-    socket.current?.on("msg-recieve", (data) => {
-      if (data.room) {
-        // if msg recieved in room and same id only then add to current chat, will handle it later
-        if (data.room === currentChat._id) {
-          setArrivalMessage({
-            fromSelf: false,
-            message: data.msg,
-            sender: data.sender,
-          });
-        }
-      } else {
-        if (data.user === currentChat._id) {
-          setArrivalMessage({
-            fromSelf: false,
-            message: data.msg,
-            sender: data.sender,
-          });
-        }
-      }
-    });
-  }, [currentChat]);
+  // const callBack = useCallback(
+  //   (data) => {
+  //     console.log("101", data, currentChat);
+  //     if (data.room) {
+  //       // console.log("from room");
+
+  //       // if msg recieved in room and same id only then add to current chat, will handle it later
+  //       if (data.room === currentChat._id) {
+  //         // console.log("room id match");
+
+  //         setArrivalMessage({
+  //           fromSelf: false,
+  //           message: data.msg,
+  //           sender: data.sender,
+  //         });
+  //       }
+  //     } else {
+  //       // console.log("from normal user");
+
+  //       if (data.user === currentChat._id) {
+  //         console.log("normal user match");
+  //         setArrivalMessage({
+  //           fromSelf: false,
+  //           message: data.msg,
+  //           sender: data.sender,
+  //         });
+  //       }
+  //     }
+  //   },
+  //   [currentChat]
+  // );
+
+  // useEffect(() => {
+  //   console.log("useEffect render");
+  //   socket.current.on("msg-recieve", callBack);
+  // }, []);
 
   useEffect(() => {
-    arrivalMessage && setMessages((prev) => [...prev, arrivalMessage]);
-  }, [arrivalMessage]);
+    console.log("useEffect render");
+    socket.current?.on("msg-recieve", (data) => {
+      console.log("101", data, currentChat);
+
+      setArrivalMessage({
+        fromSelf: false,
+        message: data.msg,
+        sender: data.sender,
+        info: data,
+      });
+      // if (data.room) {
+      //   // console.log("from room");
+
+      //   // if msg recieved in room and same id only then add to current chat, will handle it later
+      //   if (data.room === currentChat._id) {
+      //     // console.log("room id match");
+
+      //     setArrivalMessage({
+      //       fromSelf: false,
+      //       message: data.msg,
+      //       sender: data.sender,
+      //       info: data,
+      //     });
+      //   }
+      // } else {
+      //   // console.log("from normal user");
+
+      //   if (data.user === currentChat._id) {
+      //     console.log("normal user match");
+      //     setArrivalMessage({
+      //       fromSelf: false,
+      //       message: data.msg,
+      //       sender: data.sender,
+      //     });
+      //   }
+      // }
+    });
+  }, []);
+  useEffect(() => {
+    if (arrivalMessage && currentChat)
+      if (arrivalMessage.info.room) {
+        if (arrivalMessage.info.room === currentChat._id) {
+          arrivalMessage && setMessages((prev) => [...prev, arrivalMessage]);
+        }
+      } else {
+        if (arrivalMessage.info.user === currentChat._id) {
+          arrivalMessage && setMessages((prev) => [...prev, arrivalMessage]);
+        }
+        setArrivalMessage(null);
+      }
+  }, [arrivalMessage, currentChat]);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
