@@ -3,8 +3,11 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const authRoutes = require("./routes/auth");
 const messageRoutes = require("./routes/messages");
+const videoRoutes = require("./routes/video");
+
 const app = express();
 const socket = require("socket.io");
+
 require("dotenv").config();
 
 app.use(cors());
@@ -12,12 +15,19 @@ app.use(express.json());
 
 // for CORS policy
 app.use(function (req, res, next) {
+  console.log("cjec");
   res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "*");
+
   res.header(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept, x-auth-token"
   );
   res.header("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
+
+  res.header("Cache-Control", "private, no-cache, no-store, must-revalidate");
+  res.header("Expires", "-1");
+  res.header("Pragma", "no-cache");
   next();
 });
 
@@ -35,6 +45,7 @@ mongoose
 
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/rtc", videoRoutes);
 
 const server = app.listen(process.env.PORT, () =>
   console.log(`Server started on ${process.env.PORT}`)
